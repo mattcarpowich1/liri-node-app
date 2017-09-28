@@ -1,41 +1,57 @@
 const request = require('request');
 const spotify = require('node-spotify-api');
 const twitter = require('twitter');
+const fs = require('fs');
 const keys = require('./keys.js');
 
 const twitterKeys = keys.twitter;
 const spotifyKeys = keys.spotify;
 
 // save input command in variable
-let input = process.argv[2];
+// let input = process.argv[2];
 
 // depending on the input, do the right thing
-switch(input) {
-	case "my-tweets": 
-		getMyTweets();
-		break;
-  case "spotify-this-song":
-    if (process.argv[3]) {
-      let song_input = process.argv.slice(3, process.argv.length);
-      let song = song_input.join(" ");
-      getSongInfo(song);
-    } else {
-      console.log("Please enter a song name");
-    }
-    break;
-  case "movie-this":
-    let movie;
-    if (process.argv[3]) {
-      let movie_input = process.argv.slice(3, process.argv.length);
-      movie = movie_input.join(" ");
-    } else {
-      movie = "Mr. Nobody";
-    }
-    getMovieInfo(movie);
-    break;
-}
+let handleInput = function(args) {
+  switch(args[0]) {
+  	case "my-tweets": 
+  		getMyTweets();
+  		break;
+    case "spotify-this-song":
+      if (args[1]) {
+        let song_input = args.slice(1, args.length);
+        let song = song_input.join(" ");
+        getSongInfo(song);
+      } else {
+        console.log("Please enter a song name");
+      }
+      break;
+    case "movie-this":
+      let movie;
+      if (args[1]) {
+        let movie_input = args.slice(1, args.length);
+        movie = movie_input.join(" ");
+      } else {
+        movie = "Mr. Nobody";
+      }
+      getMovieInfo(movie);
+      break;
+    case "do-what-it-says":
+      fs.readFile("random.txt", "utf8", function(err, data) {
+        if (err) {
+          console.log("Error: " + err.message);
+        } else {
+          let data_input = data.split(",");
+          return handleInput(data_input);
+        }
+      });
+      break;
+    default: 
+      console.log("Please enter a valid command!");
+  }
 
-// function that gets my last 20 tweets 
+};
+
+// Outputs my last 20 tweets 
 // and when they were created
 function getMyTweets() {
 
@@ -65,7 +81,7 @@ function getMyTweets() {
 	});
 }
 
-// function that displays info for a given song
+// Outputs the following info for a given song
 // 1. Artist
 // 2. Song name
 // 3. A preview link of the song from Spotify
@@ -162,4 +178,6 @@ function getMovieInfo(title) {
 
   });
 }
+
+handleInput((process.argv.slice(2, process.argv.length)));
 
